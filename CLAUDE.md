@@ -42,9 +42,9 @@ PORT=3000
 SECRET_TOKEN=your_secret_here
 ```
 
-Bootstrap: `npm install express dotenv cors`
+Install dependencies: `npm install express dotenv cors`
 
-## Frontend Bootstrap (first time only)
+## Frontend Setup (first time only)
 
 ```bash
 npm create vite@latest frontend -- --template react
