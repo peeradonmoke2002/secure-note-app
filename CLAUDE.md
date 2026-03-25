@@ -6,26 +6,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 SecureNote is a full-stack web application (course assignment) where authorized users can create, view, and delete text notes. Each note has a title and content. The app demonstrates client-server separation, HTTP protocols, and secure configuration via environment variables.
 
-## Intended Project Structure
+## Actual Project Structure
 
 ```
 /SecureNote
   /backend
-    .env              # PORT and SECRET_TOKEN (never commit)
-    .gitignore        # must ignore .env
-    server.js         # Node.js entry point
+    .env              # PORT, SECRET_TOKEN, optional PocketHost vars (never commit)
+    .gitignore        # ignores .env and node_modules
+    server.js         # Node.js entry point (single file)
+    notes.json        # local notes storage (auto-created, default mode)
     package.json
   /frontend             # Vite + React + Tailwind CSS
     src/
-      App.jsx
-      main.jsx
-      index.css       # Tailwind directives
+      components/
+        NoteForm.jsx    # create note form (owns title/content state)
+        NoteDetail.jsx  # selected note detail panel
+        NoteList.jsx    # list of notes
+      pages/
+        NotesPage.jsx   # assembles components, holds selectedNote state
+      data/
+        api.js          # raw fetch functions (getNotes, createNote, deleteNote)
+        useNotes.js     # custom hook — fetching/saving/notes/error state
+      App.jsx           # layout + routes only
+      main.jsx          # entry point with BrowserRouter + Toaster
+      index.css         # Tailwind + @layer components custom classes
     index.html
     vite.config.js
-    tailwind.config.js
-    postcss.config.js
     package.json
-  REPORT.md           # conceptual report (required deliverable)
+  README.md             # setup + run instructions (single file, root level)
+  REPORT.md             # conceptual report (required deliverable)
 ```
 
 ## Backend Setup & Commands
@@ -33,42 +42,25 @@ SecureNote is a full-stack web application (course assignment) where authorized 
 ```bash
 cd backend
 npm install
-node server.js        # or: npm start
+node server.js
 ```
 
-Required `.env` (never commit):
+Required `.env`:
 ```
 PORT=3000
 SECRET_TOKEN=your_secret_here
 ```
 
-Install dependencies: `npm install express dotenv cors`
-
-## Frontend Setup (first time only)
-
-```bash
-npm create vite@latest frontend -- --template react
-cd frontend
-npm install
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init -p
+Optional PocketHost vars (add to `.env` to switch from local JSON to PocketHost):
+```
+POCKETHOST_URL=https://your-instance.pockethost.io
+POCKETHOST_USER_ID=1
+POCKETHOST_TOKEN=your_token
 ```
 
-Add to `tailwind.config.js` content paths:
-```js
-content: ["./index.html", "./src/**/*.{js,jsx}"]
-```
+If `POCKETHOST_URL` is set → uses PocketHost API. Otherwise → uses local `notes.json`.
 
-Add to `src/index.css`:
-```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-```
-
-## Frontend Stack
-
-React + Tailwind CSS, scaffolded with Vite.
+## Frontend Setup & Commands
 
 ```bash
 cd frontend
@@ -76,6 +68,20 @@ npm install
 npm run dev     # dev server at http://localhost:5173
 npm run build   # production build
 ```
+
+Required `.env.local`:
+```
+VITE_API_URL=http://localhost:3000
+VITE_SECRET_TOKEN=your_secret_here
+```
+
+## Frontend Stack
+
+- React + Tailwind CSS, scaffolded with Vite
+- **No Redux** — state managed via custom `useNotes()` hook
+- Toast notifications via `sonner` (position: top-center)
+- Custom Tailwind classes in `index.css`: `.card`, `.input`, `.btn-primary`, `.btn-danger`, `.note-item`
+- `fetching` and `saving` are separate loading states (avoid double spinner)
 
 ## API Endpoints
 
@@ -85,16 +91,16 @@ npm run build   # production build
 | POST | `/api/notes` | Yes | Creates a note (`{ title, content }`) |
 | DELETE | `/api/notes/:id` | Yes | Deletes a note by ID |
 
-Authorization is via the `Authorization` header containing the `SECRET_TOKEN` value. Return `401 Unauthorized` when missing or wrong, `404 Not Found` when note doesn't exist.
+Authorization is via the `Authorization` header containing the `SECRET_TOKEN` value. Returns `401 Unauthorized` when missing or wrong, `404 Not Found` when note doesn't exist.
 
-## Key Implementation Requirements
+## Key Implementation Notes
 
-- **CORS:** Enable CORS in Express — the browser will block frontend fetch requests otherwise.
-- **Fetch API:** Frontend communicates with backend using `fetch()` with `async/await` (not callbacks). Watch for unhandled Promise pending states.
-- **Auth header:** POST and DELETE must send `Authorization: <SECRET_TOKEN>` in request headers. The token is read from `process.env.SECRET_TOKEN` on the backend only — never expose it in frontend code.
-- **HTTP status codes:** Use `200 OK`, `201 Created`, `401 Unauthorized`, `404 Not Found` appropriately.
-- **Dynamic UI:** Use `useState` + `useEffect` to manage notes list and form state. Update state without page reloads; display user-friendly error messages when the backend returns errors.
-- **Tailwind CSS:** Use Tailwind utility classes for all styling — no separate CSS files needed beyond the Tailwind directives in `index.css`.
+- **Single backend file:** Keep all backend logic in `server.js` — do not split into modules
+- **Single README:** All docs in root `README.md` — no per-folder READMEs
+- **No block comments** in server.js — use README for documentation
+- **CORS:** Enabled in Express via `cors()` middleware
+- **Auth header:** POST and DELETE send `Authorization: <SECRET_TOKEN>`. Token lives in backend `.env` only — never in frontend code
+- **HTTP status codes:** `200 OK`, `201 Created`, `401 Unauthorized`, `404 Not Found`
 
 ## Required Deliverable: REPORT.md
 
@@ -121,17 +127,8 @@ Must answer:
 |--------|-----------|
 | +10 | **Cloud Deployment:** Deploy on a cloud host (Vercel, Netlify, etc.) with HTTPS and explain the process in REPORT.md |
 | +10 | **Data Persistence:** Save notes to a `.json` file or a database (e.g., SQLite) so notes survive a server restart |
-| +15 | **PocketHost API:** Use the provided PocketHost API for persistence instead of local storage. Endpoints: `GET/POST /api/collections/notes/records`, `GET/PATCH/DELETE /api/collections/notes/records/:id` |
+| +15 | **PocketHost API:** Use the provided PocketHost API for persistence instead of local storage |
 | +5  | **Loading State:** Show a loading indicator in the UI while waiting for a Fetch request to complete |
-
-## Step-by-Step Implementation Guide
-
-1. **Setup Backend:** Initialize a Node project. Install `express` and `dotenv`. Create the `.env` file.
-2. **Create API:** Build the endpoints. Test with Bruno, Postman, or ThunderClient first to ensure logic works.
-3. **Setup Frontend:** Create the UI (form to input notes + list to display them).
-4. **Connect:** Use `fetch('http://localhost:YOUR_PORT/api/notes')` to connect frontend to backend.
-5. **Secure:** Implement logic to send `SECRET_TOKEN` in the Fetch `Authorization` header.
-6. **Document:** Write `REPORT.md`.
 
 ## Submission Guidelines
 
