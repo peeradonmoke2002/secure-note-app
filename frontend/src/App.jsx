@@ -1,4 +1,3 @@
-import { Routes, Route } from 'react-router-dom'
 import NotesPage from './pages/NotesPage'
 
 export default function App() {
@@ -8,9 +7,7 @@ export default function App() {
         <h1 className="text-2xl font-bold text-gray-800">SecureNote</h1>
       </header>
 
-      <Routes>
-        <Route path="/" element={<NotesPage />} />
-      </Routes>
+      <NotesPage />
     </div>
   )
 }

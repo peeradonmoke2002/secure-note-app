@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000
 const SECRET_TOKEN = process.env.SECRET_TOKEN
 const DB_FILE = path.join(__dirname, 'notes.json')
 
-// PocketHost config (optional)
+// PocketHost config (optional — set POCKETHOST_URL in .env to enable)
 const PH_URL = process.env.POCKETHOST_URL
 const PH_ENDPOINT = PH_URL ? `${PH_URL}/api/collections/notes/records` : null
 const PH_TOKEN = process.env.POCKETHOST_TOKEN
@@ -18,84 +18,95 @@ const PH_USER_ID = parseInt(process.env.POCKETHOST_USER_ID) || 1
 app.use(cors())
 app.use(express.json())
 
-// --- Local JSON file helpers ---
-function loadNotes() {
-  if (!fs.existsSync(DB_FILE)) return []
-  return JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'))
-}
-function saveNotes(notes) {
-  fs.writeFileSync(DB_FILE, JSON.stringify(notes, null, 2))
-}
+// ─── Auth Middleware ───────────────────────────────────────────────────────────
 
-// --- Auth middleware ---
 function requireAuth(req, res, next) {
   if (req.headers['authorization'] !== SECRET_TOKEN)
     return res.status(401).json({ error: 'Unauthorized' })
   next()
 }
 
-// GET /api/notes
+// ─── Storage Helpers ───────────────────────────────────────────────────────────
+
+function readFile() {
+  if (!fs.existsSync(DB_FILE)) return []
+  return JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'))
+}
+
+function writeFile(notes) {
+  fs.writeFileSync(DB_FILE, JSON.stringify(notes, null, 2))
+}
+
+async function getAllNotes() {
+  if (PH_ENDPOINT) {
+    const data = await fetch(PH_ENDPOINT, {
+      headers: { Authorization: `Bearer ${PH_TOKEN}` },
+    }).then((r) => r.json())
+    return data.items.map(({ id, title, content }) => ({ id, title, content }))
+  }
+  return readFile()
+}
+
+async function createNote(title, content) {
+  if (PH_ENDPOINT) {
+    const r = await fetch(PH_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${PH_TOKEN}` },
+      body: JSON.stringify({ title, content, user_id: PH_USER_ID }),
+    })
+    const item = await r.json()
+    if (!r.ok) throw { status: r.status, message: item.message || 'PocketHost error' }
+    return { id: item.id, title: item.title, content: item.content }
+  }
+  const notes = readFile()
+  const note = { id: Date.now(), title, content }
+  notes.push(note)
+  writeFile(notes)
+  return note
+}
+
+async function deleteNote(id) {
+  if (PH_ENDPOINT) {
+    const r = await fetch(`${PH_ENDPOINT}/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${PH_TOKEN}` },
+    })
+    if (r.status === 404) throw { status: 404, message: 'Note not found' }
+    return
+  }
+  const notes = readFile()
+  const index = notes.findIndex((n) => n.id === parseInt(id))
+  if (index === -1) throw { status: 404, message: 'Note not found' }
+  notes.splice(index, 1)
+  writeFile(notes)
+}
+
+// ─── Routes ────────────────────────────────────────────────────────────────────
+
 app.get('/api/notes', async (_req, res) => {
   try {
-    let notes
-    if (PH_ENDPOINT) {
-      const data = await fetch(PH_ENDPOINT, { headers: { Authorization: `Bearer ${PH_TOKEN}` } }).then(r => r.json())
-      notes = data.items.map(({ id, title, content }) => ({ id, title, content }))
-    } else {
-      notes = loadNotes()
-    }
+    const notes = await getAllNotes()
     res.json(notes)
   } catch {
     res.status(500).json({ error: 'Failed to fetch notes' })
   }
 })
 
-// POST /api/notes
 app.post('/api/notes', requireAuth, async (req, res) => {
-  const { title, content } = req.body
   try {
-    let note
-    if (PH_ENDPOINT) {
-      const r = await fetch(PH_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${PH_TOKEN}` },
-        body: JSON.stringify({ title, content, user_id: PH_USER_ID }),
-      })
-      const item = await r.json()
-      if (!r.ok) return res.status(r.status).json({ error: item.message || 'PocketHost error' })
-      note = { id: item.id, title: item.title, content: item.content }
-    } else {
-      note = { id: Date.now(), title, content }
-      const notes = loadNotes()
-      notes.push(note)
-      saveNotes(notes)
-    }
+    const note = await createNote(req.body.title, req.body.content)
     res.status(201).json(note)
-  } catch {
-    res.status(500).json({ error: 'Failed to create note' })
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to create note' })
   }
 })
 
-// DELETE /api/notes/:id
 app.delete('/api/notes/:id', requireAuth, async (req, res) => {
-  const { id } = req.params
   try {
-    if (PH_ENDPOINT) {
-      const r = await fetch(`${PH_ENDPOINT}/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${PH_TOKEN}` },
-      })
-      if (r.status === 404) return res.status(404).json({ error: 'Note not found' })
-    } else {
-      const notes = loadNotes()
-      const index = notes.findIndex((n) => n.id === parseInt(id))
-      if (index === -1) return res.status(404).json({ error: 'Note not found' })
-      notes.splice(index, 1)
-      saveNotes(notes)
-    }
+    await deleteNote(req.params.id)
     res.json({ message: 'Note deleted' })
-  } catch {
-    res.status(500).json({ error: 'Failed to delete note' })
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to delete note' })
   }
 })
 
