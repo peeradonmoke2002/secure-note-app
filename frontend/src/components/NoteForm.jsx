@@ -12,7 +12,7 @@ export default function NoteForm({ saving, onAdd }) {
   }
 
   return (
-    <div className="card w-80 shrink-0">
+    <div className="card w-full lg:w-80 lg:shrink-0">
       <h2 className="text-lg font-semibold text-gray-700 mb-4">New Note</h2>
       <form onSubmit={handleSubmit} className="space-y-3">
         <input

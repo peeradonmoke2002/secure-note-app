@@ -16,7 +16,7 @@ export default function NoteList({ notes, fetching, onSelect, onDelete }) {
   }
 
   return (
-    <ul className="space-y-3">
+    <ul className="space-y-3 max-h-64 sm:max-h-80 lg:max-h-96 overflow-y-auto">
       {notes.map((note) => (
         <li key={note.id} onClick={() => onSelect(note)} className="note-item">
           <div className="min-w-0">

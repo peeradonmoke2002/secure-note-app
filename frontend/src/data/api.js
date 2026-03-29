@@ -1,15 +1,25 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000'
-const TOKEN = import.meta.env.VITE_SECRET_TOKEN
-const ENDPOINT = `${API_BASE}/api/notes`
+// API Configuration
+const API_BASE = 'http://localhost:3000'
+const TOKEN = 'mysecrettoken'
+const NOTES_URL = `${API_BASE}/api/notes`
 
+// Fetch all notes from backend
 export async function getNotes() {
-  const res = await fetch(ENDPOINT)
-  if (!res.ok) throw new Error('Failed to fetch notes')
-  return res.json()
+  console.log('GET /api/notes')
+  const response = await fetch(NOTES_URL)
+
+  if (!response.ok) throw new Error('Failed to fetch notes')
+
+  const notes = await response.json()
+  console.log('Notes fetched:', notes)
+  return notes
 }
 
+// Create a new note on backend
 export async function createNote({ title, content }) {
-  const res = await fetch(ENDPOINT, {
+  console.log('POST /api/notes', { title, content })
+
+  const response = await fetch(NOTES_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -17,17 +27,27 @@ export async function createNote({ title, content }) {
     },
     body: JSON.stringify({ title, content }),
   })
-  if (res.status === 401) throw new Error('Unauthorized')
-  if (!res.ok) throw new Error('Failed to create note')
-  return res.json()
+
+  if (response.status === 401) throw new Error('Unauthorized')
+  if (!response.ok) throw new Error('Failed to create note')
+
+  const newNote = await response.json()
+  console.log('Note created:', newNote)
+  return newNote
 }
 
+// Delete a note from backend
 export async function deleteNote(id) {
-  const res = await fetch(`${ENDPOINT}/${id}`, {
+  console.log('DELETE /api/notes/' + id)
+
+  const response = await fetch(`${NOTES_URL}/${id}`, {
     method: 'DELETE',
     headers: { Authorization: TOKEN },
   })
-  if (res.status === 401) throw new Error('Unauthorized')
-  if (res.status === 404) throw new Error('Note not found')
-  if (!res.ok) throw new Error('Failed to delete note')
+
+  if (response.status === 401) throw new Error('Unauthorized')
+  if (response.status === 404) throw new Error('Note not found')
+  if (!response.ok) throw new Error('Failed to delete note')
+
+  console.log('Note deleted:', id)
 }

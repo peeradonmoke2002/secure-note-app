@@ -25,7 +25,7 @@ export default function NotesPage() {
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-8 space-y-4">
+    <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8 space-y-4">
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md px-4 py-3">
@@ -33,11 +33,13 @@ export default function NotesPage() {
         </div>
       )}
 
-      <div className="flex gap-4 items-stretch">
+      {/* Form and Detail - Stack on mobile, side-by-side on desktop */}
+      <div className="flex flex-col lg:flex-row gap-4 items-stretch">
         <NoteForm saving={saving} onAdd={handleAdd} />
         <NoteDetail note={selectedNote} onClose={() => setSelectedNote(null)} />
       </div>
 
+      {/* Notes List */}
       <div>
         <h2 className="text-lg font-semibold text-gray-700 mb-3">Notes</h2>
         <NoteList

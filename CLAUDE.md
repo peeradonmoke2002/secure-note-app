@@ -69,11 +69,7 @@ npm run dev     # dev server at http://localhost:5173
 npm run build   # production build
 ```
 
-Required `.env.local`:
-```
-VITE_API_URL=http://localhost:3000
-VITE_SECRET_TOKEN=your_secret_here
-```
+**Configuration:** No environment variables required. The API URL and SECRET_TOKEN are hardcoded in [src/data/api.js](frontend/src/data/api.js). They must match the backend's `.env` values.
 
 ## Frontend Stack
 
@@ -99,7 +95,7 @@ Authorization is via the `Authorization` header containing the `SECRET_TOKEN` va
 - **Single README:** All docs in root `README.md` — no per-folder READMEs
 - **No block comments** in server.js — use README for documentation
 - **CORS:** Enabled in Express via `cors()` middleware
-- **Auth header:** POST and DELETE send `Authorization: <SECRET_TOKEN>`. Token lives in backend `.env` only — never in frontend code
+- **Auth header:** POST and DELETE send `Authorization: <SECRET_TOKEN>` in the header. The `SECRET_TOKEN` is defined in backend `.env` (the source of truth). Frontend reads it from `.env.local` or hardcodes it to send with requests.
 - **HTTP status codes:** `200 OK`, `201 Created`, `401 Unauthorized`, `404 Not Found`
 
 ## Required Deliverable: REPORT.md

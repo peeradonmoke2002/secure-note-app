@@ -1,8 +1,6 @@
-# SecureNote
+# Secure Note App
 
 A full-stack web application for creating, viewing, and deleting secure notes with client-server separation and environment-based configuration.
-
-**Stack:** Node.js + Express | React + Vite | Tailwind CSS
 
 
 ![SecureNote Screenshot](/images/front-end.png)
@@ -11,8 +9,8 @@ A full-stack web application for creating, viewing, and deleting secure notes wi
 
 - [Project Structure](#project-structure)
 - [Quick Start](#quick-start)
-- [Backend](#backend)
 - [Frontend](#frontend)
+- [Backend](#backend)
 - [API Endpoints](#api-endpoints)
 
 ---
@@ -20,129 +18,32 @@ A full-stack web application for creating, viewing, and deleting secure notes wi
 ## Project Structure
 
 ```
-/SecureNote
+/secure-note-app
   /backend          # Node.js + Express server
   /frontend         # React + Vite + Tailwind CSS
-  REPORT.md         # Conceptual documentation (required deliverable)
+  REPORT.md         # Conceptual report
   README.md         # This file
 ```
 
 ---
 
-## Quick Start
-
-### Terminal 1: Backend
-```bash
-cd backend
-npm install
-# Create .env file (see Backend section)
-node server.js
-```
-
-### Terminal 2: Frontend
-```bash
-cd frontend
-npm install
-# Create .env.local file (see Frontend section)
-npm run dev
-```
-
-Then open `http://localhost:5173` in your browser.
-
----
-
-## Backend
-
-### Setup
-
-**Prerequisites:**
-- Node.js (v14+)
-- npm
-
-**Installation:**
-```bash
-cd backend
-npm install
-```
-
-**Configuration:**
-
-Create a `.env` file:
-```env
-PORT=3000
-SECRET_TOKEN=your_secret_here
-```
-
-**Storage Mode:**
-- **Default:** Local JSON file (`notes.json`)
-- **Optional:** PocketHost API
-
-To use PocketHost, add to `.env`:
-```env
-POCKETHOST_URL=https://your-pockethost-instance.io
-POCKETHOST_USER_ID=1
-POCKETHOST_TOKEN=your_pockethost_token
-```
-
-If `POCKETHOST_URL` is set → uses PocketHost. Otherwise → uses local `notes.json`. No code changes needed.
-
-**Run:**
-```bash
-node server.js
-```
-
-Server will start on `http://localhost:3000`
-
-### Architecture
-
-```
-backend/
-  server.js         # Main Express app, routes, middleware
-  notes.json        # Local notes storage (auto-created)
-  .env              # Environment variables (not committed)
-  package.json
-```
-
-**Key Features:**
-- Single entry point: `server.js`
-- Auto-detects storage mode from `.env` (local JSON or PocketHost)
-- `requireAuth` middleware for POST/DELETE endpoints
-- CORS enabled for frontend requests
-
----
-
 ## Frontend
 
-### Setup
-
-**Prerequisites:**
-- Node.js (v14+)
-- npm
-
-**Installation:**
+### Installation
 ```bash
 cd frontend
 npm install
 ```
 
-**Configuration:**
+### Configuration
+No environment variables required. API URL and `SECRET_TOKEN` are hardcoded in `src/data/api.js`. Update if you change backend PORT or SECRET_TOKEN.
 
-Create a `.env.local` file:
-```env
-VITE_API_URL=http://localhost:3000
-VITE_SECRET_TOKEN=your_secret_here
-```
-
-These should match the backend's `SECRET_TOKEN` and port.
-
-**Development:**
+### Development
 ```bash
-npm run dev
+npm run dev        # Frontend starts on http://localhost:5173
 ```
 
-Frontend will start on `http://localhost:5173`
-
-**Production Build:**
+### Production Build
 ```bash
 npm run build
 ```
@@ -165,30 +66,77 @@ src/
   index.css            # Tailwind + custom classes
 ```
 
-**State Management:**
+---
 
-Custom `useNotes()` hook (no Redux):
-- `fetching` — initial load state
-- `saving` — create/delete state
-- `notes` — array of note objects
-- `error` — error message
+## Backend
+
+### Prerequisites
+- Node.js (v14+)
+- npm
+
+### Installation
+```bash
+cd backend
+npm install
+```
+
+### Configuration
+
+Create `.env` file:
+```env
+PORT=3000
+SECRET_TOKEN=your_secret_here
+```
+
+**Optional — PocketHost (cloud storage):**
+Add in same `.env`:
+
+```env
+POCKETHOST_URL=https://your-instance.pockethost.io
+POCKETHOST_USER_ID=1
+POCKETHOST_TOKEN=your_token
+```
+
+If `POCKETHOST_URL` is set → uses PocketHost, otherwise uses local `notes.json`
+
+### Run
+```bash
+node server.js
+```
+Server starts on `http://localhost:3000`
+
+### Architecture
+
+```
+backend/
+  server.js         # Main Express app, routes, middleware
+  notes.json        # Local notes storage (auto-created)
+  .env              # Environment variables (not committed)
+  package.json
+```
+
+**Key Features:**
+- Single entry point: `server.js`
+- Auto-detects storage mode from `.env` (local JSON or PocketHost)
+- `requireAuth` middleware for POST/DELETE endpoints
+- CORS enabled for frontend requests
 
 ---
 
 ## API Endpoints
 
-| Method | Path | Auth Required | Description |
-|--------|------|---------------|-------------|
-| GET | `/api/notes` | No | Returns all notes |
-| POST | `/api/notes` | Yes | Creates a new note: `{ title, content }` |
-| DELETE | `/api/notes/:id` | Yes | Deletes a note by ID |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/notes` | No | Get all notes |
+| POST | `/api/notes` | Yes | Create note: `{ title, content }` |
+| DELETE | `/api/notes/:id` | Yes | Delete note by ID |
 
-**Authorization:** Include `SECRET_TOKEN` in the `Authorization` header for POST and DELETE requests.
+**Authorization Header:** `Authorization: your_secret_here` (required for POST/DELETE)
 
-Example:
+**Example:**
 ```bash
 curl -X POST http://localhost:3000/api/notes \
-  -H "Content-Type: application/json" \
   -H "Authorization: your_secret_here" \
+  -H "Content-Type: application/json" \
   -d '{"title":"My Note","content":"Note content"}'
 ```
