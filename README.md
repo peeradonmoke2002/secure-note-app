@@ -70,10 +70,6 @@ src/
 
 ## Backend
 
-### Prerequisites
-- Node.js (v14+)
-- npm
-
 ### Installation
 ```bash
 cd backend
