@@ -1,9 +1,10 @@
 // API Configuration
-// In development: http://localhost:3000
-// In production: same domain as frontend (Vercel handles routing)
-const API_BASE = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-  ? 'http://localhost:3000'
-  : ''
+// Production: Railway backend
+const API_BASE = 'https://secure-note-app-api.up.railway.app'
+
+// Local development (commented out):
+// const API_BASE = 'http://localhost:3000'
+
 const TOKEN = 'mysecrettoken'
 const NOTES_URL = `${API_BASE}/api/notes`
 
