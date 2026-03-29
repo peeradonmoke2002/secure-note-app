@@ -3,7 +3,7 @@
 A full-stack web application for creating, viewing, and deleting secure notes with client-server separation and environment-based configuration.
 
 
-![SecureNote Screenshot](/images/front-end.png)
+![SecureNote Screenshot](./images/front-end.png)
 
 ## Table of Contents
 
