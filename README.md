@@ -7,11 +7,28 @@ A full-stack web application for creating, viewing, and deleting secure notes wi
 
 ## Table of Contents
 
+- [Live Deployment](#live-deployment)
 - [Project Structure](#project-structure)
 - [Quick Start](#quick-start)
 - [Frontend](#frontend)
 - [Backend](#backend)
 - [API Endpoints](#api-endpoints)
+
+---
+
+## Live Deployment
+
+**App is deployed and live on the cloud:**
+
+| Component | URL | Host |
+|-----------|-----|------|
+| **Frontend** | https://secure-note-app-sigma.vercel.app | Vercel |
+| **Backend API** | https://secure-note-app-api.up.railway.app | Railway |
+
+**Deployment Info:**
+- Frontend deployed on **Vercel** (auto HTTPS)
+- Backend deployed on **Railway** (auto HTTPS)
+- Both services on free tier
 
 ---
 
