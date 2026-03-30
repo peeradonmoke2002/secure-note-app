@@ -1,11 +1,11 @@
 // API Configuration
-// Production: Railway backend
-const API_BASE = 'https://secure-note-app-api.up.railway.app'
+// Local development:
+const API_BASE = 'http://localhost:3000'
 
-// Local development (commented out):
-// const API_BASE = 'http://localhost:3000'
+// Production: Railway backend (commented out):
+// const API_BASE = 'https://secure-note-app-api.up.railway.app'
 
-const TOKEN = 'mysecrettoken'
+const TOKEN = 'fixhere'
 const NOTES_URL = `${API_BASE}/api/notes`
 
 // Fetch all notes from backend
